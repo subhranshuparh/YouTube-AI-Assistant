@@ -1,0 +1,96 @@
+# -----------------------------
+# Python / FastAPI Project
+# -----------------------------
+
+# Byte-compiled / optimized files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Virtual environments
+.env
+.venv/
+venv/
+ENV/
+env/
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Environment variables & secrets
+*.env
+!example.env  # If you want to keep a public template
+
+# OS / IDE files
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+*.swp
+
+# Logs
+*.log
+*.out
+*.err
+
+# Compiled C extensions
+*.so
+
+# Distribution / packaging
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+*.egg-info/
+.installed.cfg
+*.egg
+
+# PyInstaller
+*.manifest
+*.spec
+
+# Jupyter Notebook
+.ipynb_checkpoints
+
+# Test / coverage
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+.pytest_cache/
+
+# -----------------------------
+# Frontend / Extension
+# -----------------------------
+extension/node_modules/
+extension/dist/
+extension/build/
+extension/*.zip
+extension/*.crx
+
+# -----------------------------
+# Local files
+# -----------------------------
+*.sqlite3
+*.db
+*.pkl
+*.json
+*.tmp
+*.bak
+
+# -----------------------------
+# VSCode workspace
+# -----------------------------
+*.code-workspace
