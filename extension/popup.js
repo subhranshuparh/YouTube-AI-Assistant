@@ -1,67 +1,92 @@
 document.addEventListener('DOMContentLoaded', () => {
-  const questionInput = document.getElementById("question");
-  const askBtn = document.getElementById("askBtn");
-  const clearBtn = document.getElementById("clearBtn");
-  const responseDiv = document.getElementById("response");
-  const statusDiv = document.getElementById("status");
+  const questionInput = document.getElementById('question');
+  const clearBtn = document.getElementById('clearBtn');
+  const askBtn = document.getElementById('askBtn');
+  const statusEl = document.getElementById('status');
+  const responseEl = document.getElementById('response');
+  const charCount = document.getElementById('charCount');
+  const btnText = document.getElementById('btnText');
+  const quickPrompts = document.querySelectorAll('.quick-prompt');
 
-  // Clear button functionality
-  clearBtn.addEventListener("click", () => {
-    questionInput.value = "";
-    responseDiv.textContent = "";
-    statusDiv.textContent = "";
-    statusDiv.className = "";
+  // Character counter
+  questionInput.addEventListener('input', (e) => {
+    const length = e.target.value.length;
+    charCount.textContent = `${length}/500`;
+    clearBtn.classList.toggle('visible', length > 0);
+  });
+
+  // Clear button
+  clearBtn.addEventListener('click', () => {
+    questionInput.value = '';
+    charCount.textContent = '0/500';
+    clearBtn.classList.remove('visible');
+    responseEl.textContent = '';
+    statusEl.textContent = '';
+    statusEl.className = '';
     questionInput.focus();
   });
 
-  // Enter key to ask
-  questionInput.addEventListener("keypress", (e) => {
-    if (e.key === "Enter") {
+  // Quick prompts
+  quickPrompts.forEach(btn => {
+    btn.addEventListener('click', () => {
+      questionInput.value = btn.dataset.prompt;
+      charCount.textContent = `${btn.dataset.prompt.length}/500`;
+      clearBtn.classList.add('visible');
+      questionInput.focus();
+    });
+  });
+
+  // Enter key support
+  questionInput.addEventListener('keypress', (e) => {
+    if (e.key === 'Enter' && !askBtn.disabled) {
       askBtn.click();
     }
   });
 
-  askBtn.addEventListener("click", async () => {
+  // Ask button - Real API integration
+  askBtn.addEventListener('click', async () => {
     const question = questionInput.value.trim();
     
     // Clear previous states
-    responseDiv.textContent = "";
-    statusDiv.textContent = "";
-    statusDiv.className = "";
+    responseEl.textContent = '';
+    responseEl.className = '';
+    statusEl.textContent = '';
+    statusEl.className = '';
     askBtn.disabled = true;
-    askBtn.textContent = "Processing...";
+    btnText.innerHTML = '<span class="spinner"></span> Processing...';
 
     if (!question) {
-      statusDiv.textContent = "Please enter a question.";
-      statusDiv.className = "error";
+      statusEl.textContent = 'Please enter a question.';
+      statusEl.className = 'error';
       askBtn.disabled = false;
-      askBtn.textContent = "Ask AI";
+      btnText.textContent = 'Ask AI';
       return;
     }
 
     let [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
     if (!tab.url || !tab.url.includes("youtube.com/watch")) {
-      responseDiv.textContent = "Please open a YouTube video page first.";
-      statusDiv.className = "error";
+      responseEl.textContent = 'Please open a YouTube video page first.';
+      responseEl.className = 'error';
+      statusEl.className = 'error';
       askBtn.disabled = false;
-      askBtn.textContent = "Ask AI";
+      btnText.textContent = 'Ask AI';
       return;
     }
 
     const url = new URL(tab.url);
     const videoId = url.searchParams.get("v");
     if (!videoId) {
-      responseDiv.textContent = "Could not extract video ID from URL.";
-      statusDiv.className = "error";
+      responseEl.textContent = 'Could not extract video ID from URL.';
+      responseEl.className = 'error';
+      statusEl.className = 'error';
       askBtn.disabled = false;
-      askBtn.textContent = "Ask AI";
+      btnText.textContent = 'Ask AI';
       return;
     }
 
-    // After videoId check: Simplified fetch (backend auto-processes)
-    responseDiv.textContent = "";
-    statusDiv.innerHTML = '<span class="loading"></span>Fetching transcript and generating answer...';
-    statusDiv.className = "success";
+    // Loading state
+    statusEl.innerHTML = '<span class="spinner"></span>Fetching transcript and generating answer...';
+    statusEl.className = 'success';
 
     try {
       const askRes = await fetch(
@@ -79,29 +104,36 @@ document.addEventListener('DOMContentLoaded', () => {
         if (errorMsg.includes("No transcript")) {
           errorMsg += "\n\n💡 Tip: Try a video with English/Hindi captions (e.g., TED Talks or popular podcasts).";
         }
-        responseDiv.textContent = errorMsg;
-        statusDiv.textContent = "Processing failed.";
-        statusDiv.className = "error";
+        responseEl.textContent = errorMsg;
+        responseEl.className = 'error';
+        statusEl.textContent = '✗ Processing failed.';
+        statusEl.className = 'error';
       } else if (askData.answer && askData.answer.trim()) {
-        responseDiv.textContent = askData.answer;
-        statusDiv.textContent = "✅ Answer ready!";
-        statusDiv.className = "success";
+        responseEl.textContent = askData.answer;
+        responseEl.className = 'success';
+        statusEl.textContent = '✅ Answer ready!';
+        statusEl.className = 'success';
       } else {
-        responseDiv.textContent = "No answer generated. Try rephrasing your question.";
-        statusDiv.textContent = "Unexpected response.";
-        statusDiv.className = "error";
+        responseEl.textContent = 'No answer generated. Try rephrasing your question.';
+        responseEl.className = 'error';
+        statusEl.textContent = 'Unexpected response.';
+        statusEl.className = 'error';
       }
     } catch (error) {
       console.error("Extension error:", error);
-      responseDiv.textContent = `Connection error: ${error.message}.\n\n🔧 Ensure the backend server is running on localhost:8000.`;
-      statusDiv.textContent = "Network issue.";
-      statusDiv.className = "error";
+      responseEl.textContent = `Connection error: ${error.message}.\n\n🔧 Ensure the backend server is running on localhost:8000.`;
+      responseEl.className = 'error';
+      statusEl.textContent = 'Network issue.';
+      statusEl.className = 'error';
     } finally {
       askBtn.disabled = false;
-      askBtn.textContent = "Ask AI";
+      btnText.textContent = 'Ask AI';
+      setTimeout(() => {
+        statusEl.textContent = '';
+      }, 3000);  // Auto-hide status after 3s
     }
   });
 
-  // Focus input on load
+  // Initial focus
   questionInput.focus();
 });
